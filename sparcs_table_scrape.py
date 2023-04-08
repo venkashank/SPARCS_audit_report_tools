@@ -49,4 +49,5 @@ if __name__ == "__main__":
         df = pd.read_csv(csv_file, dtype=str)
         df_list.append(df)
     df = pd.concat(df_list)
+    df = df[df["DISCHARGE_MONTH"].notna()]
     df.to_csv("SPARCS_AUDIT_REPORT.csv", index=False)
