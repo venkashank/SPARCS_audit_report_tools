@@ -35,7 +35,7 @@ def process_pdf(pdf_filename: str, folder: str):
 
         df["PFI"] = pfi
 
-        df["ADUIT_YEAR"] = file_year
+        df["AUDIT_YEAR"] = file_year
 
         df.to_csv(f"{folder}/{csv_name}{table_counter}.csv", index=False)
         table_counter += 1
