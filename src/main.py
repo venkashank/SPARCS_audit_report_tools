@@ -25,6 +25,7 @@ if __name__ == "__main__" and __package__ is None:
 import logging
 # No need for sys and os if not using sys.path modifications here (already imported above)
 
+
 # Configure logging (consistent with other scripts)
 logging.basicConfig(
     level=logging.INFO,
@@ -37,9 +38,11 @@ try:
     from .compliance_table_extractor import extract_compliance_data
     from .audit_report_table_extractor import extract_audit_data
 except ImportError as e:
+
     # This error logging might be less relevant now if the __package__ fix works,
     # but keeping it doesn't hurt, as it might catch other import issues.
     logging.error(f"Error importing modules: {e}. This might indicate an issue beyond the sys.path/package fix.")
+
     raise
 
 
@@ -96,6 +99,7 @@ def run_pipeline():
         logging.error("SPARCS data processing pipeline finished with errors. Not all steps were successful.")
 
 if __name__ == "__main__":
+
     # The code block at the top (if __name__ == "__main__" and __package__ is None:)
     # will have already run and set up sys.path and __package__ if this script
     # is executed directly (e.g., `python src/main.py`).
@@ -103,4 +107,5 @@ if __name__ == "__main__":
     
     # Running as `python -m src.main` would set `__package__` correctly by default,
     # and the top block wouldn't modify `__package__`.
+
     run_pipeline()

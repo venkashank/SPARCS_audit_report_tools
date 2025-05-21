@@ -34,6 +34,7 @@ To run the full data processing pipeline, execute the `main.py` script from the 
     ```
 
 Both commands will execute all steps in sequence:
+
 1.  Download compliance PDF reports (using logic from `compliance_report_puller.py`).
 2.  Extract and process tables from these compliance PDFs (using logic from `compliance_table_extractor.py`).
 3.  Process audit report HTML tables (using logic from `audit_report_table_extractor.py`).
