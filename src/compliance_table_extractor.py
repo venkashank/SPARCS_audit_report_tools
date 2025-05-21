@@ -93,50 +93,81 @@ def process_pdf(pdf_filename: str) -> list[pd.DataFrame]:
         logging.error(f"Error processing PDF {pdf_filename} with camelot: {e}. Skipping this PDF.")
         return []
 
+def extract_compliance_data():
+    """
+    Main logic to find and process all compliance PDFs from the pdf_folder,
+    extract tables, and save a consolidated CSV report.
+    Raises RuntimeError if critical steps fail (e.g., no PDFs, no tables extracted).
+    """
+    logging.info("Starting SPARCS Compliance PDF processing (core logic).")
+    
+    if not pdf_folder.exists() or not any(pdf_folder.glob("*.pdf")):
+        msg = f"PDF input folder {pdf_folder.resolve()} does not exist or is empty. Cannot proceed."
+        logging.error(msg)
+        raise RuntimeError(msg)
 
-if __name__ == "__main__":
-    logging.info("Starting SPARCS Compliance PDF processing.")
     all_tables_dfs = []
     pdfs_processed_count = 0
     tables_extracted_count = 0
 
     pdf_list = list(pdf_folder.glob("*.pdf"))
-    if not pdf_list:
-        logging.warning(f"No PDF files found in {pdf_folder}. Exiting.")
-        exit()
+    if not pdf_list: # Should be caught by the check above, but as a safeguard.
+        msg = f"No PDF files found in {pdf_folder.resolve()} at the processing stage."
+        logging.error(msg) # Changed from warning to error as it's now a critical failure point.
+        raise RuntimeError(msg)
     
-    logging.info(f"Found {len(pdf_list)} PDF files to process.")
+    logging.info(f"Found {len(pdf_list)} PDF files to process in {pdf_folder.resolve()}.")
 
-    for pdf_file_path in tqdm(pdf_list, desc="Processing PDFs"):
+    for pdf_file_path in tqdm(pdf_list, desc="Processing Compliance PDFs"):
         try:
             pdf_filename_str = str(pdf_file_path)
+            # `process_pdf` already has internal logging for success/failure of individual PDFs/tables
             processed_dfs_from_pdf = process_pdf(pdf_filename_str)
             if processed_dfs_from_pdf:
                 all_tables_dfs.extend(processed_dfs_from_pdf)
                 tables_extracted_count += len(processed_dfs_from_pdf)
             pdfs_processed_count += 1
         except Exception as e:
-            logging.error(f"Unexpected error processing PDF file {pdf_file_path}: {e}")
+            # This catch is for unexpected errors during the loop itself,
+            # not within process_pdf (which has its own error handling).
+            logging.error(f"Unexpected error during the processing loop for PDF file {pdf_file_path}: {e}", exc_info=True)
 
     logging.info(f"Finished processing {pdfs_processed_count} PDF(s). Extracted {tables_extracted_count} table(s) in total.")
 
-    if all_tables_dfs:
-        try:
-            logging.info("Concatenating all extracted tables.")
-            final_df = pd.concat(all_tables_dfs, ignore_index=True)
-            
-            # Perform final filtering
-            if "DISCHARGE_MONTH" in final_df.columns:
-                final_df = final_df[final_df["DISCHARGE_MONTH"].notna()]
-            else:
-                logging.warning("'DISCHARGE_MONTH' column not found for final filtering.")
+    if not all_tables_dfs:
+        msg = "No tables were extracted from any PDF files. Final report cannot be generated."
+        logging.error(msg) # Changed from warning to error
+        raise RuntimeError(msg)
+    
+    try:
+        logging.info("Concatenating all extracted tables.")
+        final_df = pd.concat(all_tables_dfs, ignore_index=True)
+        
+        # Perform final filtering
+        if "DISCHARGE_MONTH" in final_df.columns:
+            final_df = final_df[final_df["DISCHARGE_MONTH"].notna()]
+            logging.info("Applied final filtering on 'DISCHARGE_MONTH'.")
+        else:
+            logging.warning("'DISCHARGE_MONTH' column not found for final filtering. Skipping this filter.")
 
-            output_filename = "SPARCS_Compliance_Report.csv"
-            final_df.to_csv(output_filename, index=False)
-            logging.info(f"Successfully saved consolidated report to {output_filename}")
-        except Exception as e:
-            logging.error(f"Error during final DataFrame concatenation or saving: {e}")
-    else:
-        logging.warning("No tables were extracted. Final report will not be generated.")
+        output_filename = "SPARCS_Compliance_Report.csv"
+        final_df.to_csv(output_filename, index=False)
+        logging.info(f"Successfully saved consolidated compliance report to {output_filename}")
+    except Exception as e:
+        msg = f"Error during final DataFrame concatenation or saving the consolidated report: {e}"
+        logging.error(msg, exc_info=True)
+        raise RuntimeError(msg) from e
 
-    logging.info("SPARCS Compliance PDF processing finished.")
+    logging.info("SPARCS Compliance PDF processing (core logic) finished successfully.")
+    # return True # Optional
+
+
+if __name__ == "__main__":
+    logging.info("Executing compliance_table_extractor.py as a standalone script.")
+    try:
+        extract_compliance_data()
+        logging.info("compliance_table_extractor.py executed successfully.")
+    except RuntimeError as e:
+        logging.critical(f"RuntimeError in compliance_table_extractor.py: {e}")
+    except Exception as e:
+        logging.critical(f"An unexpected critical error occurred in compliance_table_extractor.py: {e}", exc_info=True)

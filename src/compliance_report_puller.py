@@ -48,18 +48,28 @@ def extract_pdf_urls(url: str) -> List[str]:
         logging.error(f"An unexpected error occurred while extracting PDF URLs from {url}: {e}")
         return []
 
-if __name__ == "__main__":
-    logging.info("Starting PDF download process")
+def pull_compliance_pdfs():
+    """
+    Main logic for extracting PDF URLs and downloading the PDF files.
+    Raises RuntimeError if critical steps fail (e.g., no URLs found, all downloads fail).
+    """
+    logging.info("Starting PDF download process (core logic)")
 
     pdf_urls: List[str] = extract_pdf_urls(REPORTS_URL)
     
     if not pdf_urls:
-        logging.warning("No PDF URLs extracted. Exiting PDF download process.")
-        exit()
+        msg = "No PDF URLs extracted. This is critical for the PDF pulling process."
+        logging.error(msg)
+        raise RuntimeError(msg)
         
     output_pdf_dir = Path("pdfs/")
-    output_pdf_dir.mkdir(parents=True, exist_ok=True)
-    logging.info(f"PDFs will be saved to {output_pdf_dir.resolve()}")
+    try:
+        output_pdf_dir.mkdir(parents=True, exist_ok=True)
+        logging.info(f"PDFs will be saved to {output_pdf_dir.resolve()}")
+    except OSError as e:
+        msg = f"Failed to create output directory {output_pdf_dir}: {e}"
+        logging.error(msg)
+        raise RuntimeError(msg) from e
 
     successful_downloads = 0
     failed_downloads = 0
@@ -70,15 +80,15 @@ if __name__ == "__main__":
             file_name_str = Path(pdf_url.split("/")[-1]).name
             if not file_name_str.lower().endswith(".pdf"):
                 logging.warning(f"Skipping URL as it does not appear to be a PDF: {pdf_url}")
-                failed_downloads +=1
+                failed_downloads +=1 # Count as failed if it was expected to be a PDF
                 continue
 
             file_path:Path = output_pdf_dir / file_name_str
             
             logging.debug(f"Attempting to download PDF from {pdf_url}")
             
-            pdf_response = requests.get(pdf_url, timeout=30) # Added timeout
-            pdf_response.raise_for_status() # Raise an exception for bad status codes
+            pdf_response = requests.get(pdf_url, timeout=30)
+            pdf_response.raise_for_status() 
 
             with open(file_path, "wb") as f:
                 f.write(pdf_response.content)
@@ -87,8 +97,28 @@ if __name__ == "__main__":
         except requests.exceptions.RequestException as e:
             logging.error(f"Error downloading PDF from {pdf_url}: {e}")
             failed_downloads += 1
-        except Exception as e:
-            logging.error(f"An unexpected error occurred while downloading {pdf_url}: {e}")
+        except Exception as e: # Catch other unexpected errors during download/saving
+            logging.error(f"An unexpected error occurred while processing {pdf_url}: {e}")
             failed_downloads += 1
             
     logging.info(f"PDF download process finished. Successful downloads: {successful_downloads}, Failed downloads: {failed_downloads}")
+
+    if len(pdf_urls) > 0 and successful_downloads == 0:
+        msg = f"All PDF downloads failed out of {len(pdf_urls)} URLs. Check network or source issues."
+        logging.error(msg)
+        raise RuntimeError(msg)
+    
+    # Optional: Could return a summary or True/False
+    # For now, raising exceptions for critical failures is the primary contract.
+
+if __name__ == "__main__":
+    logging.info("Executing compliance_report_puller.py as a standalone script.")
+    try:
+        pull_compliance_pdfs()
+        logging.info("compliance_report_puller.py executed successfully.")
+    except RuntimeError as e:
+        logging.critical(f"RuntimeError in compliance_report_puller.py: {e}")
+        # sys.exit(1) # Optional: exit with error code for standalone runs
+    except Exception as e:
+        logging.critical(f"An unexpected critical error occurred in compliance_report_puller.py: {e}", exc_info=True)
+        # sys.exit(1) # Optional
