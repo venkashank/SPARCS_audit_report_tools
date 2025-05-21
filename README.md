@@ -22,12 +22,39 @@ The `src/` directory contains the following scripts:
 
 ## Usage Overview
 
-The typical workflow for processing SPARCS *compliance reports* is:
+The primary way to run the full data processing pipeline is by executing the `main.py` script from the project's root directory (the directory containing the `src` folder):
 
-1.  Run `python src/compliance_report_puller.py` to download the PDF reports into the `pdfs/` directory.
-2.  Then, run `python src/compliance_table_extractor.py` to process these PDFs and generate the `SPARCS_Compliance_Report.csv`.
+```bash
+python -m src.main
+```
+Alternatively, if you are in the `src` directory:
+```bash
+python main.py
+```
 
-The `src/audit_report_table_extractor.py` script can be run independently to scrape HTML table data from the relevant audit report web pages.
+This main script will execute all steps in sequence:
+1.  Download compliance PDF reports (using logic from `compliance_report_puller.py`).
+2.  Extract and process tables from these compliance PDFs (using logic from `compliance_table_extractor.py`).
+3.  Process audit report HTML tables (using logic from `audit_report_table_extractor.py`).
+
+The pipeline is designed to stop if any critical step fails, and errors will be logged.
+
+### Running Individual Steps
+
+While `src/main.py` is recommended for a full pipeline run, individual scripts can still be executed independently if only a specific part of the pipeline is needed. Ensure you are in the `src` directory or adjust paths accordingly:
+
+-   To only download compliance PDFs:
+    ```bash
+    python compliance_report_puller.py
+    ```
+-   To only process downloaded compliance PDFs (assuming they are already in the `pdfs/` directory):
+    ```bash
+    python compliance_table_extractor.py
+    ```
+-   To only process audit report HTML tables:
+    ```bash
+    python audit_report_table_extractor.py
+    ```
 
 ## Output Files
 
