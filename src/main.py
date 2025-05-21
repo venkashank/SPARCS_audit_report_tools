@@ -1,5 +1,30 @@
+import os
+import sys
+
+if __name__ == "__main__" and __package__ is None:
+    # This block executes if the script is run directly (e.g., python src/main.py)
+    # and not as part of a package (e.g., not python -m src.main)
+
+    # Get the absolute path of the 'src' directory (where main.py resides)
+    src_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # Get the absolute path of the project root directory (parent of 'src')
+    project_root = os.path.dirname(src_dir)
+    
+    # Add the project root to sys.path if it's not already there
+    # This allows Python to find the 'src' package
+    if project_root not in sys.path:
+        sys.path.insert(0, project_root)
+    
+    # Set __package__ to 'src'
+    # This informs Python that main.py is part of the 'src' package,
+    # which is necessary for relative imports (from .module import ...) to work.
+    __package__ = "src"
+
+# --- Original script content starts below ---
 import logging
-# No need for sys and os if not using sys.path modifications here
+# No need for sys and os if not using sys.path modifications here (already imported above)
+
 
 # Configure logging (consistent with other scripts)
 logging.basicConfig(
@@ -13,14 +38,11 @@ try:
     from .compliance_table_extractor import extract_compliance_data
     from .audit_report_table_extractor import extract_audit_data
 except ImportError as e:
-    logging.error(f"Error importing modules: {e}. Ensure this script is run as part of a package, e.g., 'python -m src.main'.")
-    # Optionally, re-raise or sys.exit if imports are critical for any script functionality
-    # For now, we'll let it proceed, and it will fail later if functions are not defined.
-    # However, it's better to make these imports robust or guide the user.
-    # For this task, assume the imports will work when run correctly.
-    # If running `python src/main.py` directly, relative imports will fail.
-    # It should be run as `python -m src.main` from the project root directory.
-    # Adding a check here to prevent running if imports fail.
+
+    # This error logging might be less relevant now if the __package__ fix works,
+    # but keeping it doesn't hurt, as it might catch other import issues.
+    logging.error(f"Error importing modules: {e}. This might indicate an issue beyond the sys.path/package fix.")
+
     raise
 
 
@@ -77,10 +99,13 @@ def run_pipeline():
         logging.error("SPARCS data processing pipeline finished with errors. Not all steps were successful.")
 
 if __name__ == "__main__":
-    # This allows src/main.py to be run directly for development/testing,
-    # but for relative imports to work correctly, it's better to run as a module:
-    # python -m src.main (from the parent directory of src)
-    # If run as `python src/main.py`, and if the other files are in the same dir,
-    # you might need to adjust imports or sys.path.
-    # Given the `from .script import func` syntax, it assumes `src` is a package.
+
+    # The code block at the top (if __name__ == "__main__" and __package__ is None:)
+    # will have already run and set up sys.path and __package__ if this script
+    # is executed directly (e.g., `python src/main.py`).
+    # This allows the relative imports (`from .module ...`) to work.
+    
+    # Running as `python -m src.main` would set `__package__` correctly by default,
+    # and the top block wouldn't modify `__package__`.
+
     run_pipeline()

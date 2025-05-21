@@ -22,17 +22,19 @@ The `src/` directory contains the following scripts:
 
 ## Usage Overview
 
-The primary way to run the full data processing pipeline is by executing the `main.py` script from the project's root directory (the directory containing the `src` folder):
+To run the full data processing pipeline, execute the `main.py` script from the **project root directory** (the directory containing the `src` folder) using one of the following commands:
 
-```bash
-python -m src.main
-```
-Alternatively, if you are in the `src` directory:
-```bash
-python main.py
-```
+1.  **Using the module execution flag (recommended):**
+    ```bash
+    python -m src.main
+    ```
+2.  **Directly executing the script:**
+    ```bash
+    python src/main.py
+    ```
 
-This main script will execute all steps in sequence:
+Both commands will execute all steps in sequence:
+
 1.  Download compliance PDF reports (using logic from `compliance_report_puller.py`).
 2.  Extract and process tables from these compliance PDFs (using logic from `compliance_table_extractor.py`).
 3.  Process audit report HTML tables (using logic from `audit_report_table_extractor.py`).
