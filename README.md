@@ -20,42 +20,101 @@ The `src/` directory contains the following scripts:
     *   **Output:** Saves each extracted HTML table as an individual CSV file into the `output/` directory.
     *   **Note:** The name `audit_report_table_extractor.py` might be slightly misleading as it processes HTML tables from web pages, not PDF audit reports directly in the same way the compliance scripts handle PDFs. A name like `audit_html_table_scraper.py` or `sparcs_html_table_extractor.py` could be more descriptive of its specific function.
 
+## Setup and Installation
+
+This project uses `uv` for package and environment management.
+
+1.  **Install `uv`**:
+    If you don't have `uv` installed, follow the official installation instructions: [https://astral.sh/uv/install.sh](https://astral.sh/uv/install.sh) (for macOS/Linux) or [https://astral.sh/uv/install.ps1](https://astral.sh/uv/install.ps1) (for Windows).
+    Alternatively, you can install it via pip:
+    ```bash
+    pip install uv
+    ```
+
+2.  **Clone the repository**:
+    ```bash
+    git clone <repository-url> # Replace <repository-url> with the actual URL
+    cd <repository-name>       # Replace <repository-name> with the cloned directory name
+    ```
+
+3.  **Create a virtual environment**:
+    This will create a `.venv` directory in the project root.
+    ```bash
+    uv venv
+    ```
+
+4.  **Install dependencies**:
+    This will install all necessary packages specified in `pyproject.toml` and `uv.lock`.
+    ```bash
+    uv sync
+    ```
+
+
 ## Usage Overview
 
-To run the full data processing pipeline, execute the `main.py` script from the **project root directory** (the directory containing the `src` folder) using one of the following commands:
+After setting up the environment and installing dependencies as described above, you can run the processing pipeline.
 
-1.  **Using the module execution flag (recommended):**
-    ```bash
-    python -m src.main
-    ```
-2.  **Directly executing the script:**
-    ```bash
-    python src/main.py
-    ```
+**Activate the virtual environment (optional but recommended if not using `uv run` for every command):**
+```bash
+source .venv/bin/activate  # On macOS/Linux
+# .venv\Scripts\activate    # On Windows (cmd)
+# .venv\Scripts\Activate.ps1 # On Windows (PowerShell)
+```
 
-Both commands will execute all steps in sequence:
+To run the full data processing pipeline, execute the `main.py` script.
 
-1.  Download compliance PDF reports (using logic from `compliance_report_puller.py`).
-2.  Extract and process tables from these compliance PDFs (using logic from `compliance_table_extractor.py`).
-3.  Process audit report HTML tables (using logic from `audit_report_table_extractor.py`).
+**Recommended way using `uv run` (handles the environment automatically):**
+```bash
+uv run python src/main.py
+```
+
+**Alternatively, if you have activated the virtual environment:**
+1. Run as a script (relies on the path logic within `main.py`):
+   ```bash
+   python src/main.py
+   ```
+2. Run as a module (Python resolves `src` from the project root):
+   ```bash
+   python -m src.main
+   ```
+
+These commands will execute all steps in sequence:
+1.  Download compliance PDF reports.
+2.  Extract and process tables from these compliance PDFs.
+3.  Process audit report HTML tables.
 
 The pipeline is designed to stop if any critical step fails, and errors will be logged.
 
-### Running Individual Steps
+### Running Individual Scripts
 
-While `src/main.py` is recommended for a full pipeline run, individual scripts can still be executed independently if only a specific part of the pipeline is needed. Ensure you are in the `src` directory or adjust paths accordingly:
+Individual scripts can be executed if only a specific part of the pipeline is needed.
 
+**Using `uv run` (recommended):**
 -   To only download compliance PDFs:
     ```bash
-    python compliance_report_puller.py
+    uv run python src/compliance_report_puller.py
     ```
--   To only process downloaded compliance PDFs (assuming they are already in the `pdfs/` directory):
+-   To only process downloaded compliance PDFs (assuming they are in `pdfs/`):
     ```bash
-    python compliance_table_extractor.py
+    uv run python src/compliance_table_extractor.py
     ```
 -   To only process audit report HTML tables:
     ```bash
-    python audit_report_table_extractor.py
+    uv run python src/audit_report_table_extractor.py
+    ```
+
+**If the virtual environment is activated:**
+-   To only download compliance PDFs:
+    ```bash
+    python src/compliance_report_puller.py
+    ```
+-   To only process downloaded compliance PDFs:
+    ```bash
+    python src/compliance_table_extractor.py
+    ```
+-   To only process audit report HTML tables:
+    ```bash
+    python src/audit_report_table_extractor.py
     ```
 
 ## Output Files

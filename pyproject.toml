@@ -1,0 +1,18 @@
+[project]
+name = "sparcs-report-processing"
+version = "0.1.0"
+description = "Python scripts to download and process SPARCS reports from the NY State Department of Health."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "beautifulsoup4>=4.13.4",
+    "camelot-py>=1.0.0",
+    "openpyxl>=3.1.5",
+    "pandas>=2.3.0",
+    "requests>=2.32.3",
+    "tqdm>=4.67.1",
+]
+authors = [
+    {name = "Automated Migration Script", email = "dev@example.com"},
+]
+license = {text = "MIT"}

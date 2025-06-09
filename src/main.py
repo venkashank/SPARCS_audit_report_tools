@@ -1,27 +1,18 @@
-import os
-import sys
+import os # Added
+import sys # Added
 
+# Ensure the script can find sibling modules when run directly or via `uv run python src/main.py`
 if __name__ == "__main__" and __package__ is None:
-    # This block executes if the script is run directly (e.g., python src/main.py)
-    # and not as part of a package (e.g., not python -m src.main)
-
-    # Get the absolute path of the 'src' directory (where main.py resides)
     src_dir = os.path.dirname(os.path.abspath(__file__))
-    
-    # Get the absolute path of the project root directory (parent of 'src')
     project_root = os.path.dirname(src_dir)
-    
-    # Add the project root to sys.path if it's not already there
-    # This allows Python to find the 'src' package
     if project_root not in sys.path:
         sys.path.insert(0, project_root)
-    
-    # Set __package__ to 'src'
-    # This informs Python that main.py is part of the 'src' package,
-    # which is necessary for relative imports (from .module import ...) to work.
     __package__ = "src"
 
 # --- Original script content starts below ---
+# Diagnostic print:
+print(f"DEBUG: In src/main.py - __name__: {__name__}, __package__: {__package__}")
+
 import logging
 # No need for sys and os if not using sys.path modifications here (already imported above)
 
