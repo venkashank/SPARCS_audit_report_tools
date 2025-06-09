@@ -5,12 +5,12 @@ from unittest.mock import patch, Mock, call, ANY # ANY is useful for logging cal
 import logging
 
 # Add src directory to sys.path to allow direct import of modules
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
+# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src'))) # This might not be needed if tests are run correctly
 
 # Now we can import run_pipeline from main
 # The try-except for ImportError in main.py itself should handle if this structure is wrong
 # when main.py is run, but for tests, this direct import should work given sys.path.
-from main import run_pipeline
+from src.main import run_pipeline
 
 # Disable logging for tests specifically for main.py unless testing log messages
 # This prevents cluttering test output with pipeline logs.
@@ -24,10 +24,10 @@ class TestMainPipeline(unittest.TestCase):
         # This helps to re-enable logging if a specific test disables it or changes level
         logging.disable(logging.NOTSET)
 
-    @patch('main.extract_audit_data')
-    @patch('main.extract_compliance_data')
-    @patch('main.pull_compliance_pdfs')
-    @patch('main.logging.info') # To check log messages
+    @patch('src.main.extract_audit_data')
+    @patch('src.main.extract_compliance_data')
+    @patch('src.main.pull_compliance_pdfs')
+    @patch('src.main.logging.info') # To check log messages
     def test_pipeline_successful_run_and_call_sequence(
         self, mock_log_info, mock_pull_pdfs, mock_extract_data, mock_extract_audit
     ):
@@ -58,10 +58,10 @@ class TestMainPipeline(unittest.TestCase):
         mock_log_info.assert_any_call("SPARCS data processing pipeline finished successfully.")
 
 
-    @patch('main.extract_audit_data')
-    @patch('main.extract_compliance_data')
-    @patch('main.pull_compliance_pdfs', side_effect=RuntimeError("PDF Pull Failed"))
-    @patch('main.logging.error') # To check error log messages
+    @patch('src.main.extract_audit_data')
+    @patch('src.main.extract_compliance_data')
+    @patch('src.main.pull_compliance_pdfs', side_effect=RuntimeError("PDF Pull Failed"))
+    @patch('src.main.logging.error') # To check error log messages
     def test_pipeline_stops_if_pull_pdfs_fails(
         self, mock_log_error, mock_pull_pdfs, mock_extract_data, mock_extract_audit
     ):
@@ -79,10 +79,10 @@ class TestMainPipeline(unittest.TestCase):
         mock_log_error.assert_any_call("SPARCS data processing pipeline finished with errors. Not all steps were successful.")
 
 
-    @patch('main.extract_audit_data')
-    @patch('main.extract_compliance_data', side_effect=RuntimeError("Data Extraction Failed"))
-    @patch('main.pull_compliance_pdfs')
-    @patch('main.logging.error')
+    @patch('src.main.extract_audit_data')
+    @patch('src.main.extract_compliance_data', side_effect=RuntimeError("Data Extraction Failed"))
+    @patch('src.main.pull_compliance_pdfs')
+    @patch('src.main.logging.error')
     def test_pipeline_stops_if_extract_data_fails(
         self, mock_log_error, mock_pull_pdfs, mock_extract_data, mock_extract_audit
     ):
@@ -100,10 +100,10 @@ class TestMainPipeline(unittest.TestCase):
         mock_log_error.assert_any_call("SPARCS data processing pipeline finished with errors. Not all steps were successful.")
 
 
-    @patch('main.extract_audit_data', side_effect=RuntimeError("Audit Extraction Failed"))
-    @patch('main.extract_compliance_data')
-    @patch('main.pull_compliance_pdfs')
-    @patch('main.logging.error')
+    @patch('src.main.extract_audit_data', side_effect=RuntimeError("Audit Extraction Failed"))
+    @patch('src.main.extract_compliance_data')
+    @patch('src.main.pull_compliance_pdfs')
+    @patch('src.main.logging.error')
     def test_pipeline_logs_error_if_extract_audit_fails(
         self, mock_log_error, mock_pull_pdfs, mock_extract_data, mock_extract_audit
     ):
@@ -123,11 +123,11 @@ class TestMainPipeline(unittest.TestCase):
         )
         mock_log_error.assert_any_call("SPARCS data processing pipeline finished with errors. Not all steps were successful.")
 
-    @patch('main.extract_audit_data')
-    @patch('main.extract_compliance_data')
-    @patch('main.pull_compliance_pdfs')
-    @patch('main.logging.info')
-    @patch('main.logging.error')
+    @patch('src.main.extract_audit_data')
+    @patch('src.main.extract_compliance_data')
+    @patch('src.main.pull_compliance_pdfs')
+    @patch('src.main.logging.info')
+    @patch('src.main.logging.error')
     def test_unexpected_exception_in_step_1(self, mock_log_error, mock_log_info, mock_pull_pdfs, mock_extract_data, mock_extract_audit):
         """Test that a non-RuntimeError exception in step 1 is handled and stops the pipeline."""
         mock_pull_pdfs.side_effect = ValueError("Unexpected Value Error")
